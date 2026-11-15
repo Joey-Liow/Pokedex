@@ -39,15 +39,18 @@ function PokemonCards({
   );
 
   const listEndRef = useRef<HTMLDivElement>(null);
+  const lastRequestedPageRef = useRef(pageNumber);
 
   const loadMore = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    const nextPage = page + 1;
 
+    if (isLoading || !hasMore || nextPage <= lastRequestedPageRef.current) return;
+
+    lastRequestedPageRef.current = nextPage;
     setIsLoading(true);
     setError("");
 
     try {
-      const nextPage = page + 1;
       const url = new URL(apiUrl);
       url.searchParams.set("page", String(nextPage));
       url.searchParams.set("limit", String(limit));
@@ -62,6 +65,7 @@ function PokemonCards({
       setPage(nextPage);
       setHasMore(nextPokemons.length === limit);
     } catch {
+      lastRequestedPageRef.current = page;
       setError("Could not load more Pokémon. Please try again...");
     } finally {
       setIsLoading(false);
