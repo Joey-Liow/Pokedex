@@ -1,10 +1,13 @@
 import Image from "next/image";
+import Carousel from "./carousel";
 import leftStaticImage from "../public/leftStaticImage.png";
 import rightStaticImage from "../public/rightStaticImage.png";
+import topStaticBannerImage from "../public/staticBannerTop.png";
+import bottomStaticBannerImage from "../public/staticBannerBottom.png";
 
 export default async function Home() {
   const response = await fetch(
-    "http://127.0.0.1:8000/api/pokemons?page=1&limit=15",
+    "http://127.0.0.1:8000/api/pokemons?page=1&limit=50",
   );
 
   if (!response.ok) {
@@ -22,8 +25,33 @@ export default async function Home() {
   const pokemons: Pokemon[] = await response.json();
 
   return (
-    <main className="px-4">
-      <h1>Pokédex</h1>
+    <main className="px-4 py-4">
+      <section className="mb-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <Carousel />
+
+        <div className="grid h-80 grid-rows-2 gap-3">
+          <div className="relative overflow-hidden">
+            <Image
+              src={topStaticBannerImage}
+              alt=""
+              fill
+              sizes="320px"
+              className="object-cover"
+            />
+          </div>
+
+          <div className="relative overflow-hidden">
+            <Image
+              src={bottomStaticBannerImage}
+              alt=""
+              fill
+              sizes="320px"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-4 lg:grid-cols-[12em_minmax(0,1fr)_20rem]">
         <aside className="relative hidden lg:block h-90 overflow-hidden">
           <Image
@@ -51,7 +79,7 @@ export default async function Home() {
             </button>
           </div>
 
-          <div className="h-[60vh] overflow-y-auto [&::-webkit-scrollbar]:hidden">
+          <div className="h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden">
             <ul className="grid grid-cols-3 gap-x-3 gap-y-5">
               {pokemons.map((pokemon) => (
                 <li key={pokemon.name} className="flex items-center gap-4 rounded-lg border border-gray-300 p-4">
