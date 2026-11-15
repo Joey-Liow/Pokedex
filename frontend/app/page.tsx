@@ -16,12 +16,13 @@ export default async function Home() {
   url.searchParams.set("page", String(pageNumber));
   url.searchParams.set("limit", String(limit));
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Laravel returned ${response.status}`);
-  }
+  const initialPokemons = fetch(url).then(async (response): Promise<Pokemon[]> => {
+    if (!response.ok) {
+      throw new Error(`Laravel returned ${response.status}`);
+    }
 
-  const pokemons: Pokemon[] = await response.json();
+    return response.json();
+  });
 
   return (
     <main className="px-4 py-4">
@@ -62,7 +63,7 @@ export default async function Home() {
           />
         </aside>
 
-        <PokemonList initialPokemons={pokemons} apiUrl={apiUrl} pageNumber={pageNumber} limit={limit} />
+        <PokemonList initialPokemons={initialPokemons} apiUrl={apiUrl} pageNumber={pageNumber} limit={limit} />
 
         <aside className="relative hidden lg:block h-100 overflow-hidden">
           <Image

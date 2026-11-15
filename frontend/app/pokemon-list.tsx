@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, use, Suspense, type RefObject } from "react";
 
 export type Pokemon = {
     name: string;
@@ -9,29 +9,35 @@ export type Pokemon = {
     image: string;
 };
 
-export default function PokemonList({
+type PokemonListProps = {
+  initialPokemons: Promise<Pokemon[]>;
+  apiUrl: string;
+  pageNumber: number;
+  limit: number;
+};
+
+function PokemonCards({
   initialPokemons,
   apiUrl,
   pageNumber,
   limit,
-}: {
-  initialPokemons: Pokemon[];
-  apiUrl: string;
-  pageNumber: number
-  limit: number;
+  query,
+  scrollBoxRef
+}: PokemonListProps & {
+  query:string;
+  scrollBoxRef: RefObject<HTMLDivElement | null>;
 }) {
-  const [pokemons, setPokemons] = useState(initialPokemons);
+  const firstBatch = use(initialPokemons);
+  const [pokemons, setPokemons] = useState(firstBatch);
   const [page, setPage] = useState(pageNumber);
-  const [hasMore, setHasMore] = useState(initialPokemons.length === limit);
+  const [hasMore, setHasMore] = useState(firstBatch.length === limit);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
 
   const visiblePokemons = pokemons.filter((pokemon) =>
     pokemon.name.toLowerCase().includes(query),
   );
 
-  const scrollBoxRef = useRef<HTMLDivElement>(null);
   const listEndRef = useRef<HTMLDivElement>(null);
 
   const loadMore = useCallback(async () => {
@@ -77,36 +83,10 @@ export default function PokemonList({
 
     observer.observe(target);
     return () => observer.disconnect();
-    }, [error, hasMore, isLoading, loadMore, query]);
+    }, [error, hasMore, isLoading, loadMore, query, scrollBoxRef]);
 
   return (
-    <section className="min-w-0">
-        <form
-          className="mb-6 flex items-center gap-6"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const value = new FormData(event.currentTarget).get("pokemonName");
-            setQuery(String(value ?? "").trim().toLowerCase());
-            scrollBoxRef.current?.scrollTo({ top: 0 });
-          }}
-        >
-            <input
-              type="search"
-              name="pokemonName"
-              aria-label="Search Pokémon by name"
-              placeholder="Pokémon Name"
-              className="min-w-0 flex-1 rounded-full border border-gray-200 bg-white px-5 py-2 text-sm text-gray-900 shadow-sm placeholder:font-medium placeholder:text-gray-600"
-            />
-            
-            <button
-              type="submit"
-              className="rounded-md bg-amber-400 px-3 py-2 text-sm font-semibold text-gray-100"
-            >
-                Search
-            </button>
-        </form>
-
-        <div ref={scrollBoxRef} className="h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden">
+    <>
         <ul className="grid grid-cols-3 gap-x-3 gap-y-5">
             {visiblePokemons.map((pokemon) => (
             <li key={pokemon.name} className="flex items-center gap-4 rounded-lg border border-gray-300 p-4">
@@ -160,7 +140,49 @@ export default function PokemonList({
             You’ve reached the end of the list.
           </p>
         )}
+    </>
+  );
+}
+
+export default function PokemonList(props: PokemonListProps) {
+  const [query, setQuery] = useState("");
+  const scrollBoxRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <section className="min-w-0">
+        <form
+          className="mb-6 flex items-center gap-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const value = new FormData(event.currentTarget).get("pokemonName");
+            setQuery(String(value ?? "").trim().toLowerCase());
+            scrollBoxRef.current?.scrollTo({ top: 0 });
+          }}
+        >
+            <input
+              type="search"
+              name="pokemonName"
+              aria-label="Search Pokémon by name"
+              placeholder="Pokémon Name"
+              className="min-w-0 flex-1 rounded-full border border-gray-200 bg-white px-5 py-2 text-sm text-gray-900 shadow-sm placeholder:font-medium placeholder:text-gray-600"
+            />
+            
+            <button
+              type="submit"
+              className="rounded-md bg-amber-400 px-3 py-2 text-sm font-semibold text-gray-100"
+            >
+                Search
+            </button>
+        </form>
+
+        <div
+          ref={scrollBoxRef}
+          className="h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden"
+        >
+            <Suspense fallback={<p role="status">Loading Pokémon…</p>}>
+            <PokemonCards {...props} query={query} scrollBoxRef={scrollBoxRef} />
+            </Suspense>
         </div>
     </section>
-  )
+  );
 }
