@@ -4,6 +4,13 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  images: {
+  remotePatterns: [
+    new URL(
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/**",
+    ),
+  ],
+},
   turbopack: {
     rules: {
       "*.css": {
