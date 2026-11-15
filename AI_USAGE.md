@@ -1,8 +1,8 @@
 # AI usage
 
-I used OpenAI Codex during development for focused implementation examples, debugging, code review, and drafting this documentation. I made the project changes in my editor and used the feedback to check how the Laravel API, React state, and browser behavior fit together.
+I used OpenAI Codex during development for focused implementation examples, debugging, code review, and drafting the README and this AI usage note. I made the project changes in my editor and used the feedback to check how the Laravel API, React state, and browser behavior fit together.
 
-The following prompts are condensed for readability.
+The prompts below are paraphrased for readability.
 
 | Prompt | My reasoning and the resulting change |
 | --- | --- |
@@ -10,5 +10,6 @@ The following prompts are condensed for readability.
 | “Can I keep the banners, side images, and search bar visible while just the card list loads?” | The page was waiting for Laravel before rendering. I started the request in the server page, passed the promise to the cards, and put the `Suspense` boundary around the cards. The search bar and banners can render while the first batch loads. |
 | “Why does it keep loading more Pokémon when I search?” | Filtering shortened the visible list and brought the infinite-scroll marker into view. I paused the observer while a search was active and resumed it when the search was cleared. Search filters the batches already loaded. |
 | “React reports two children with the same key, `metapod`. What is causing this?” | Two observer callbacks could start the same page request before the loading state updated. I added a ref that records the requested page immediately and resets after a failure so Retry can request that page again. |
+| “The main features are in place. Review the implementation against the assessment requirements, flag any bugs or gaps, and tell me what remains before submission.” | The review found that the no-results message sat below the scroll box, where users could miss it. I moved it directly below the card grid. The review also flagged the missing root README, which I prepared with AI to cover local setup and the API. |
 
 Codex helped verify the API mapping with mocked PokéAPI responses. It also ran an isolated check of the pagination function: duplicate callbacks requested a page only once, and a failed request could be retried. ESLint and TypeScript checks passed after the pagination fix.
